@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_27018_upgr_track.UpgradeVersionFilesRunner</api_name>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>UpgradeVersionFilesRunner</name>
+        <script><![CDATA[var UpgradeVersionFilesRunner = Class.create();
+UpgradeVersionFilesRunner.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+	
+	start: function(){
+		var upgradeVersionId = this.getParameter('sysparm_ajax_processor_id');
+		
+		var worker = new GlideScriptedHierarchicalWorker();
+		//give it a name
+		worker.setProgressName(gs.getMessage("Creating upgrade version files"));
+		//run in the background so user can close progress if they get bored watching
+		worker.setBackground(true);
+		//call the script include worker and method
+		worker.setScriptIncludeName("x_27018_upgr_track.UpgradeVersionFilesWorker");
+		worker.setScriptIncludeMethod("run");
+		worker.putMethodArg('upgradeVersionId', upgradeVersionId);
+		worker.start();
+		//get the worker id so we can track progress from the client
+		var progressID = worker.getProgressID();
+		return progressID;
+	},
+	
+	type: 'UpgradeVersionFilesRunner'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2017-04-14 18:44:24</sys_created_on>
+        <sys_customer_update>true</sys_customer_update>
+        <sys_id>b4a972fa0f463200f52b09ece1050ec4</sys_id>
+        <sys_mod_count>19</sys_mod_count>
+        <sys_name>UpgradeVersionFilesRunner</sys_name>
+        <sys_package display_value="Upgrade Tracker" source="x_27018_upgr_track">8cd59db60f023200f52b09ece1050e6d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Upgrade Tracker">8cd59db60f023200f52b09ece1050e6d</sys_scope>
+        <sys_update_name>sys_script_include_b4a972fa0f463200f52b09ece1050ec4</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2017-04-15 03:38:52</sys_updated_on>
+    </sys_script_include>
+</record_update>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element label="Upgrade Version FIle" max_length="40" name="x_27018_upgr_track_upgrade_version_file" type="collection">
+        <element label="File name" max_length="255" name="file_name" type="string"/>
+        <element label="Last update" max_length="40" name="last_update" type="glide_date_time"/>
+        <element label="Upgrade version" max_length="32" name="upgrade_version" reference="x_27018_upgr_track_upgrade_version" reference_cascade_rule="delete" type="reference"/>
+        <index name="index">
+            <element name="upgrade_version"/>
+        </index>
+    </element>
+</database>

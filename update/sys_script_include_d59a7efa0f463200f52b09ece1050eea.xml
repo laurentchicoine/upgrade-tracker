@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>x_27018_upgr_track.UpgradeVersionFilesWorker</api_name>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>UpgradeVersionFilesWorker</name>
+        <script><![CDATA[var UpgradeVersionFilesWorker = Class.create();
+UpgradeVersionFilesWorker.prototype = {
+	initialize: function() {
+		//get the tracker so we can send progress updates
+		this.tracker = GlideExecutionTracker.getLastRunning();
+	},
+	
+	run: function(upgradeVersionId) {
+		var trackedTables = [];
+		var i, trackedTable;
+		
+		var trackedTablesGr = new GlideRecord('x_27018_upgr_track_tracked_tables');
+		trackedTablesGr.addActiveQuery();
+		trackedTablesGr.query();
+		while(trackedTablesGr.next()){
+			trackedTable = {};
+			trackedTable.table = trackedTablesGr.getValue('table');
+			trackedTable.inherit = Boolean(trackedTablesGr.inherit);
+			trackedTables.push(trackedTable);
+		}
+		
+		//Get total count of records to create for the tracker
+		var totalCount = 0;
+		for(i=0; i<trackedTables.length; i++){
+			trackedTable = trackedTables[i];
+			var ga = new GlideAggregate(trackedTable.table);
+			//If there is no inheritance, do not take extended tables by filtering on the sys_class_name
+			if(!trackedTable.inherit){
+				ga.addQuery('sys_class_name', trackedTable.table);
+			}
+			ga.addAggregate('COUNT');
+			ga.query();
+			if(ga.next()){
+				totalCount += ga.getAggregate('COUNT');
+			}
+		}
+			
+		var fileCounter = 1; //Used to keep progress
+		//Create upgrade version files
+		for(i=0; i<trackedTables.length; i++){
+			trackedTable = trackedTables[i];
+			var gr = new GlideRecord(trackedTable.table);
+			//If there is no inheritance, do not take extended tables by filtering on the sys_class_name
+			if(!trackedTable.inherit){
+				gr.addQuery('sys_class_name', trackedTable.table);
+			}
+			gr.query();
+			while(gr.next()){
+				//Create Upgrade Version File
+				var fileGr = new GlideRecord('x_27018_upgr_track_upgrade_version_file');
+				fileGr.upgrade_version = upgradeVersionId;
+				fileGr.last_update = gr.sys_updated_on;
+				fileGr.file_name = gr.getRecordClassName() + '_' + gr.getUniqueValue();
+				fileGr.insert();
+				
+				//Update tracker
+				if (totalCount < 100) {
+					//determine how many percent to increment for each interval
+					var intervalPercent = Math.floor(100 / totalCount);
+					this.tracker.incrementPercentComplete(intervalPercent);
+				}
+				else {
+					//determine number of things for one percent
+					var onePercentInterval = Math.floor(totalCount / 100);
+					if (fileCounter % onePercentInterval == 0) {
+						//increment one percent more
+						this.tracker.incrementPercentComplete(1);
+					}
+				}
+				fileCounter++;
+			}
+		}
+		
+		this.tracker.success("Finished creating " + totalCount + " Upgrade Version Files");
+		this.tracker.updateResult({filesCreated: totalCount});
+	},
+
+	type: 'UpgradeVersionFilesWorker'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2017-04-14 18:47:03</sys_created_on>
+        <sys_customer_update>true</sys_customer_update>
+        <sys_id>d59a7efa0f463200f52b09ece1050eea</sys_id>
+        <sys_mod_count>36</sys_mod_count>
+        <sys_name>UpgradeVersionFilesWorker</sys_name>
+        <sys_package display_value="Upgrade Tracker" source="x_27018_upgr_track">8cd59db60f023200f52b09ece1050e6d</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Upgrade Tracker">8cd59db60f023200f52b09ece1050e6d</sys_scope>
+        <sys_update_name>sys_script_include_d59a7efa0f463200f52b09ece1050eea</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2017-04-15 03:05:14</sys_updated_on>
+    </sys_script_include>
+</record_update>

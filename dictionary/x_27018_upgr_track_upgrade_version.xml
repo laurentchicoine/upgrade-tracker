@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element label="Upgrade Version" max_length="40" name="x_27018_upgr_track_upgrade_version" type="collection">
+        <element default="javascript: gs.getProperty('glide.buildtag')" display="true" label="Name" mandatory="true" max_length="255" name="name" read_only="true" type="string"/>
+    </element>
+</database>
